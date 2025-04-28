@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>System Health Dashboard</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: #f3f4f6;
+            margin: 0;
+            padding: 20px;
+            min-height: 100vh;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        h1 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 40px;
+        }
+        .score-container {
+            position: relative;
+            width: 200px;
+            height: 200px;
+            margin: 0 auto 40px;
+        }
+        .score {
+            width: 180px;
+            height: 180px;
+            line-height: 180px;
+            border-radius: 50%;
+            background-color: #ccc;
+            color: white;
+            font-size: 48px;
+            font-weight: bold;
+            text-align: center;
+            margin: 10px;
+            transition: background-color 0.5s ease;
+            position: relative;
+            z-index: 1;
+        }
+        .score-ring {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 200px;
+            height: 200px;
+            border-radius: 50%;
+            border: 10px solid #f3f4f6;
+            border-top-color: #ccc;
+            animation: rotate 2s linear infinite;
+            transition: border-top-color 0.5s ease;
+        }
+        @keyframes rotate {
+            100% { transform: rotate(360deg); }
+        }
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 20px;
+            margin-top: 30px;
+            max-width: 600px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+        .metric-card {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+        .metric-title {
+            font-size: 18px;
+            color: #555;
+            margin-bottom: 15px;
+        }
+        .metric-value {
+            font-size: 24px;
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 10px;
+            display: block;
+            white-space: nowrap;
+            overflow: visible;
+        }
+        .progress-bar {
+            height: 10px;
+            background: #e9ecef;
+            border-radius: 5px;
+            overflow: hidden;
+        }
+        .progress-fill {
+            height: 100%;
+            transition: width 0.5s ease, background-color 0.5s ease;
+            width: 0%;
+        }
+        #cpuBar { background: #FF4B4B; }
+        #memoryBar { background: #4CAF50; }
+        #diskBar { background: #FF9F00; }
+
+        .refresh-btn {
+            display: block;
+            margin: 30px auto 0;
+            padding: 12px 24px;
+            font-size: 16px;
+            background: #007BFF;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+        .refresh-btn:hover {
+            background: #0056b3;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>System Health Report</h1>
+    
+    <div class="score-container">
+        <div class="score" id="healthScore">--</div>
+        <div class="score-ring"></div>
+    </div>
+
+    <div class="metrics-grid">
+        <div class="metric-card">
+            <div class="metric-title">CPU Usage</div>
+            <div class="metric-value" id="cpuUsage">--%</div>
+            <div class="progress-bar">
+                <div class="progress-fill" id="cpuBar"></div>
+            </div>
+        </div>
+        <div class="metric-card">
+            <div class="metric-title">Memory Usage</div>
+            <div class="metric-value" id="memoryUsage">--%</div>
+            <div class="progress-bar">
+                <div class="progress-fill" id="memoryBar"></div>
+            </div>
+        </div>
+        <div class="metric-card">
+            <div class="metric-title">Disk Usage</div>
+            <div class="metric-value" id="diskUsage">--%</div>
+            <div class="progress-bar">
+                <div class="progress-fill" id="diskBar"></div>
+            </div>
+        </div>
+
+    </div>
+
+    <button class="refresh-btn" onclick="fetchHealth()">Refresh</button>
+</div>
+
+<script>
+async function fetchHealth() {
+    try {
+        const response = await fetch('http://localhost:5000/api/system_health');
+        const data = await response.json();
+
+        const healthScore = document.getElementById('healthScore');
+        const scoreRing = document.querySelector('.score-ring');
+        healthScore.textContent = data.score;
+
+        // Change color based on score
+        let color;
+        if (data.score > 70) {
+            color = "#4CAF50";  // Green
+        } else if (data.score >= 30) {
+            color = "#FFC107";  // Yellow
+        } else {
+            color = "#F44336";  // Red
+        }
+        healthScore.style.backgroundColor = color;
+        scoreRing.style.borderTopColor = color;
+
+        // Update metrics and progress bars
+        document.getElementById('cpuUsage').textContent = data.cpuUsage + "%";
+        document.getElementById('cpuBar').style.width = data.cpuUsage + "%";
+        
+        document.getElementById('memoryUsage').textContent = data.memoryUsage + "%";
+        document.getElementById('memoryBar').style.width = data.memoryUsage + "%";
+        
+        document.getElementById('diskUsage').textContent = data.diskUsage + "%";
+        document.getElementById('diskBar').style.width = data.diskUsage + "%";
+        
+
+
+    } catch (error) {
+        console.error('Error fetching system health:', error);
+        alert('Failed to fetch system health report. Please check if the server is running.');
+    }
+}
+
+// Auto fetch when page loads
+fetchHealth();
+</script>
+
+</body>
+</html>

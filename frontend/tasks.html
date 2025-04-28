@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Task Manager</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Poppins', sans-serif;
+      background-color: #faf8ff;
+      color: #333;
+    }
+
+    .container {
+      width: 90%;
+      max-width: 1200px;
+      margin: 40px auto;
+      background: #fff;
+      border-radius: 12px;
+      box-shadow: 0 4px 12px rgba(107, 70, 193, 0.1);
+      padding: 30px;
+    }
+
+    h1 {
+      text-align: center;
+      margin-bottom: 30px;
+      font-size: 32px;
+      color: #5a2ec0;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: separate;
+      border-spacing: 0 10px;
+    }
+
+    th {
+      background-color: #f0f0f5;
+      text-align: left;
+      padding: 15px;
+      font-weight: 600;
+      font-size: 15px;
+      color: #555;
+      border-bottom: 2px solid #e0e0e0;
+    }
+
+    td {
+      background-color: #ffffff;
+      padding: 15px;
+      vertical-align: middle;
+      font-size: 14px;
+      color: #555;
+      border-bottom: 1px solid #f0f0f5;
+    }
+
+    tr:hover td {
+      background-color: #f9f9fb;
+    }
+
+    .progress-container {
+      background-color: #eee;
+      border-radius: 8px;
+      overflow: hidden;
+      height: 20px;
+      width: 100%;
+    }
+
+    .progress-bar {
+      height: 100%;
+      line-height: 20px;
+      color: #470280;
+      text-align: center;
+      font-size: 12px;
+      font-weight: bold;
+      background: linear-gradient(90deg, #6d10b9 0%, #5f1cca 100%);
+      transition: width 0.5s ease-in-out;
+    }
+
+    @media (max-width: 768px) {
+      th, td {
+        font-size: 13px;
+      }
+    }
+  </style>
+</head>
+<body>
+
+<div class="container">
+  <h1><i class="fas fa-tasks"></i> Task Manager</h1>
+  <table id="processTable">
+    <thead>
+      <tr>
+        <th>PID</th>
+        <th>Name</th>
+        <th>CPU Usage</th>
+        <th>Memory (MB)</th>
+        <th>Disk (MB)</th>
+      </tr>
+    </thead>
+    <tbody>
+      <!-- Rows will be populated here -->
+    </tbody>
+  </table>
+</div>
+
+<script>
+    $(document).ready(function() {
+      function loadProcesses() {
+        $.ajax({
+          url: 'http://127.0.0.1:5000/processes',
+          type: 'GET',
+          success: function(data) {
+            let tableBody = $('#processTable tbody');
+            tableBody.empty();
+    
+            // Step 1: Filter out idle processes
+            const activeProcesses = data.filter(p => !/idle/i.test(p.name));
+    
+            // Step 2: Calculate total CPU of active processes
+            let totalCPU = activeProcesses.reduce((sum, p) => sum + p.cpu, 0);
+    
+            // Avoid division by zero
+            totalCPU = totalCPU || 1;
+    
+            // Step 3: Normalize each process's CPU usage relative to active CPU usage
+            activeProcesses.forEach(function(process) {
+              const normalizedCPU = (process.cpu / totalCPU) * 100;
+    
+              tableBody.append(`
+                <tr>
+                  <td>${process.pid}</td>
+                  <td>${process.name}</td>
+                  <td>
+                    <div class="progress-container">
+                      <div class="progress-bar" style="width: ${normalizedCPU}%; background: linear-gradient(90deg, ${getProgressColor(normalizedCPU)} 0%, #81c784 100%);">
+                        ${normalizedCPU.toFixed(1)}%
+                      </div>
+                    </div>
+                  </td>
+                  <td>${process.memory.toFixed(2)} MB</td>
+                  <td>${process.disk.toFixed(2)} MB</td>
+                </tr>
+              `);
+            });
+          }
+        });
+      }
+    
+      function getProgressColor(cpu) {
+        if (cpu < 50) return '#9f7aea';     // light purple
+        if (cpu < 75) return '#805ad5';     // medium purple
+        return '#6b46c1';                   // dark purple
+      }
+    
+      loadProcesses();
+      setInterval(loadProcesses, 5000);
+    });
+    </script>
+    
+
+</body>
+</html>

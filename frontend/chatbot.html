@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>ZeroLag AI Chatbot</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <style>
+    body {
+      font-family: 'Segoe UI', Arial, sans-serif;
+      background: #faf8ff;
+      margin: 0;
+      display: flex;
+      flex-direction: column;
+      height: 100vh;
+      transition: background-color 0.3s ease;
+    }
+    header {
+      background: linear-gradient(135deg, #6b46c1 0%, #553c9a 100%);
+      color: white;
+      padding: 16px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      font-size: 1.5em;
+      font-weight: bold;
+      position: relative;
+      box-shadow: 0 2px 10px rgba(107, 70, 193, 0.2);
+    }
+
+#back-btn {
+  background: none;
+  border: none;
+  color: white;
+  font-size: 1em;
+  cursor: pointer;
+  position: absolute;  /* Position it independently */
+  left: 16px;  /* Align to the left */
+}
+
+#back-btn:hover {
+  text-decoration: underline;
+}
+
+    #chat-container {
+      flex: 1;
+      padding: 16px;
+      overflow-y: auto;
+      background: #fff;
+      border-bottom: 1px solid #ddd;
+    }
+    .message {
+      margin-bottom: 14px;
+      max-width: 75%;
+      padding: 12px 16px;
+      border-radius: 18px;
+      clear: both;
+      word-wrap: break-word;
+      line-height: 1.4;
+      font-size: 1em;
+    }
+    .user-message {
+      background: linear-gradient(135deg, #6b46c1 0%, #553c9a 100%);
+      color: white;
+      float: right;
+      border-bottom-right-radius: 4px;
+      box-shadow: 2px 2px 10px rgba(107, 70, 193, 0.1);
+    }
+    .bot-message {
+      background: #f4f0ff;
+      color: #2d3748;
+      float: left;
+      border-bottom-left-radius: 4px;
+      box-shadow: 2px 2px 10px rgba(107, 70, 193, 0.1);
+      border: 1px solid rgba(107, 70, 193, 0.1);
+    }
+    #input-area {
+      display: flex;
+      padding: 12px 16px;
+      background: #fff;
+      border-top: 1px solid #ddd;
+    }
+    #message-input {
+      flex: 1;
+      padding: 10px 14px;
+      font-size: 1em;
+      border: 1px solid #ccc;
+      border-radius: 24px;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+    #message-input:focus {
+      border-color: #6b46c1;
+      box-shadow: 0 0 0 2px rgba(107, 70, 193, 0.1);
+    }
+    #send-btn {
+      margin-left: 12px;
+      background: linear-gradient(135deg, #6b46c1 0%, #553c9a 100%);
+      border: none;
+      color: white;
+      font-size: 1em;
+      padding: 10px 18px;
+      border-radius: 24px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      box-shadow: 0 2px 4px rgba(107, 70, 193, 0.2);
+    }
+    #send-btn:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 4px 6px rgba(107, 70, 193, 0.3);
+    }
+    #send-btn:disabled {
+      background: #c4b5fd;
+      cursor: not-allowed;
+      transform: none;
+      box-shadow: none;
+    }
+
+  </style>
+</head>
+<body>
+  <header>
+    <button id="back-btn"  onclick="goBack()">← Back</button>
+    ZeroLag AI Chatbot
+  </header>
+  
+  <div id="chat-container"></div>
+  <div id="input-area">
+    <input
+      id="message-input"
+      type="text"
+      placeholder="Type your message here..."
+      autocomplete="off"
+      autofocus
+    />
+    <button id="send-btn" disabled>Send</button>
+  </div>
+
+  <script>
+    const chatContainer = document.getElementById('chat-container');
+    const messageInput = document.getElementById('message-input');
+    const sendBtn = document.getElementById('send-btn');
+
+    // Enable send button only when input is not empty
+    messageInput.addEventListener('input', () => {
+      sendBtn.disabled = messageInput.value.trim() === '';
+    });
+
+    // Append a new message to the chat
+    function appendMessage(text, sender) {
+      const messageDiv = document.createElement('div');
+      messageDiv.classList.add('message', sender === 'user' ? 'user-message' : 'bot-message');
+      messageDiv.innerHTML = formatMessage(text);
+      chatContainer.appendChild(messageDiv);
+      chatContainer.scrollTop = chatContainer.scrollHeight;
+    }
+
+    // Format the incoming message text with HTML formatting
+    function formatMessage(text) {
+      // Bold text: **bold**
+      text = text.replace(/\*\*(.*?)\*\*/g, '<b>$1</b>');
+
+      // Inline code: `code`
+      text = text.replace(/`(.*?)`/g, '<code>$1</code>');
+
+      // Ordered list (1. Item)
+      text = text.replace(/(\d+\.\s.*?)(?=\n|$)/g, (match) => `<li>${match.trim()}</li>`);
+      if (text.includes('<li>')) {
+        text = `<ul>${text}</ul>`;
+      }
+
+      // Unordered list (- Item)
+      text = text.replace(/-\s(.*?)(?=\n|$)/g, (match, p1) => `<li>${p1}</li>`);
+      if (text.includes('<li>') && !text.includes('<ol>')) {
+        text = `<ul>${text}</ul>`;
+      }
+
+      // Newlines to paragraphs
+      text = text.split('\n').map(line => `<p>${line}</p>`).join('');
+
+      return text;
+    }
+
+    // Send a message to the backend server
+    async function sendMessage() {
+      const message = messageInput.value.trim();
+      if (!message) return;
+
+      appendMessage(message, 'user');
+      messageInput.value = '';
+      sendBtn.disabled = true;
+
+      try {
+        const response = await fetch('http://127.0.0.1:5000/api/chatbot', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ message })
+        });
+
+        const data = await response.json();
+        if (response.ok && data.reply) {
+          appendMessage(data.reply, 'bot');
+        } else {
+          appendMessage(`Error: ${data.error || 'Unexpected server error.'}`, 'bot');
+        }
+      } catch (error) {
+        appendMessage(`Error: ${error.message}`, 'bot');
+      }
+    }
+
+    // Handle send button click
+    sendBtn.addEventListener('click', sendMessage);
+
+    // Handle Enter keypress
+    messageInput.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' && !sendBtn.disabled) {
+        sendMessage();
+      }
+    });
+
+    function goBack() {
+  window.history.back(); // takes user one step back
+}
+
+  </script>
+</body>
+</html>

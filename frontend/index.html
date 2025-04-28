@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>ZeroLag OS AI Agent</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    @keyframes slideIn {
+      from { transform: translateX(-100%); opacity: 0; }
+      to { transform: translateX(0); opacity: 1; }
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    body {
+      font-family: 'Segoe UI', Arial, sans-serif;
+      background: #faf8ff;
+      margin: 0;
+      padding: 0;
+      display: flex;
+      height: 100vh;
+      transition: background-color 0.3s ease;
+    }
+    /* Sidebar styles */
+    .sidebar {
+      width: 220px;
+      background: linear-gradient(135deg, #6b46c1 0%, #553c9a 100%);
+      color: white;
+      display: flex;
+      flex-direction: column;
+      padding: 20px;
+      box-shadow: 2px 0 15px rgba(107, 70, 193, 0.2);
+      transition: all 0.3s ease;
+    }
+    .sidebar h2 {
+      margin-bottom: 30px;
+      font-size: 1.8em;
+      text-align: center;
+    }
+    .sidebar a {
+      color: white;
+      text-decoration: none;
+      margin-bottom: 18px;
+      font-size: 1.1em;
+      padding: 12px;
+      border-radius: 8px;
+      transition: all 0.3s ease;
+      text-align: center;
+      background: rgba(255, 255, 255, 0.1);
+      backdrop-filter: blur(5px);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+    .sidebar a:hover {
+      background: rgba(255, 255, 255, 0.2);
+      transform: translateX(5px);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    }
+    /* Main content */
+    .main {
+      flex-grow: 1;
+      padding: 40px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      color: #2d3748;
+      background: linear-gradient(135deg, #fff 0%, #f8f4ff 100%);
+      transition: all 0.3s ease;
+      overflow-y: auto;
+    }
+    .welcome-text {
+      font-size: 2em;
+      margin-bottom: 40px;
+      animation: slideIn 1s ease-out;
+    }
+    .benefits-container {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 20px;
+      width: 100%;
+      max-width: 1200px;
+      padding: 0 20px;
+    }
+    .benefit-card {
+      background: white;
+      padding: 24px;
+      border-radius: 12px;
+      box-shadow: 0 4px 15px rgba(107, 70, 193, 0.1);
+      animation: fadeIn 0.5s ease-out forwards;
+      opacity: 0;
+    }
+    .benefit-card:nth-child(1) { animation-delay: 0.2s; }
+    .benefit-card:nth-child(2) { animation-delay: 0.4s; }
+    .benefit-card:nth-child(3) { animation-delay: 0.6s; }
+    .benefit-card h3 {
+      color: #6b46c1;
+      margin: 0 0 12px 0;
+      font-size: 1.4em;
+    }
+    .benefit-card p {
+      margin: 0;
+      color: #4a5568;
+      line-height: 1.6;
+      font-size: 1.1em;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="sidebar">
+    <h2>Dashboard</h2>
+    <a href="chatbot.html">🤖 Chatbot</a>
+    <a href="cleanup.html">🧹 Cleanup</a>
+    <a href="SystemHealth.html">🩺 System Health</a>
+    <a href="tasks.html">📋 Tasks</a>
+  </div>
+
+  <div class="main">
+    <div class="welcome-text">Welcome to <b>ZeroLag OS AI Agent</b>! 🚀</div>
+    <div class="benefits-container">
+      <div class="benefit-card">
+        <h3> System Optimization</h3>
+        <p>Automatically monitors and optimizes your system performance for peak efficiency and speed.</p>
+      </div>
+      <div class="benefit-card">
+        <h3> Smart Cleanup</h3>
+        <p>Intelligently manages system resources and removes unnecessary files to keep your system running smoothly.</p>
+      </div>
+      <div class="benefit-card">
+        <h3> AI-Powered Assistant</h3>
+        <p>Your smart AI assistant that helps manage tasks and provides intelligent system recommendations.</p>
+      </div>
+    </div>
+  </div>
+
+</body>
+</html>

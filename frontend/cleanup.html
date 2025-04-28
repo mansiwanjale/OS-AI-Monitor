@@ -1,0 +1,347 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>System Cleanup</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <style>
+    body {
+      font-family: 'Segoe UI', Arial, sans-serif;
+      margin: 0;
+      padding: 0;
+      background: #faf8ff;
+    }
+
+    header {
+      background: linear-gradient(135deg, #6b46c1 0%, #553c9a 100%);
+      color: white;
+      padding: 15px 25px;
+      display: flex;
+      align-items: center;
+      box-shadow: 0 2px 10px rgba(107, 70, 193, 0.2);
+    }
+
+    #back-btn {
+      background: rgba(255, 255, 255, 0.1);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      color: white;
+      font-size: 1.2em;
+      margin-right: 15px;
+      cursor: pointer;
+      padding: 8px 12px;
+      border-radius: 8px;
+      transition: all 0.3s ease;
+    }
+
+    #back-btn:hover {
+      background: rgba(255, 255, 255, 0.2);
+    }
+
+    #file-list {
+      margin: 25px;
+    }
+
+    .file-item {
+      background: white;
+      margin-bottom: 15px;
+      padding: 15px 20px;
+      border-radius: 12px;
+      box-shadow: 0 3px 10px rgba(107, 70, 193, 0.1);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      animation: fadeInScale 0.4s ease;
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    .file-item:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 5px 15px rgba(107, 70, 193, 0.15);
+    }
+
+    .file-info {
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+    }
+
+    .file-path {
+      color: #666;
+      font-size: 0.9em;
+    }
+
+    .file-size {
+      font-size: 0.9em;
+      color: #6b46c1;
+      display: flex;
+      align-items: center;
+      gap: 15px;
+    }
+    .file-item input[type="checkbox"] {
+      width: 20px;
+      height: 20px;
+      accent-color: #6b46c1;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .file-item input[type="checkbox"]:hover {
+      transform: scale(1.1);
+    }
+
+    .popup {
+      background: white;
+      padding: 25px 35px;
+      border-radius: 16px;
+      box-shadow: 0 8px 32px rgba(107, 70, 193, 0.2);
+      text-align: center;
+      z-index: 9999;
+      animation: popupScale 0.4s ease;
+    }
+
+    @keyframes popupScale {
+      0% { transform: translate(-50%, -50%) scale(0.8); opacity: 0; }
+      100% { transform: translate(-50%, -50%) scale(1); opacity: 1; }
+    }
+
+    .popup h3 {
+      color: #6b46c1;
+      margin: 15px 0;
+      font-size: 1.4em;
+    }
+
+    .popup p {
+      color: #4a5568;
+      font-size: 1.1em;
+      margin: 10px 0;
+    }
+    #buttons {
+      margin: 25px;
+      display: flex;
+      gap: 15px;
+      flex-wrap: wrap;
+    }
+
+    button {
+      padding: 12px 24px;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 1em;
+      font-weight: 500;
+      transition: all 0.3s ease;
+    }
+
+    #scan-btn {
+      background: linear-gradient(135deg, #6b46c1 0%, #553c9a 100%);
+      color: white;
+    }
+
+    #scan-btn:hover {
+      box-shadow: 0 4px 12px rgba(107, 70, 193, 0.3);
+      transform: translateY(-2px);
+    }
+
+    #delete-btn {
+      background: #dc2626;
+      color: white;
+    }
+
+    #delete-btn:hover {
+      background: #b91c1c;
+      box-shadow: 0 4px 12px rgba(220, 38, 38, 0.3);
+    }
+
+    #select-all-btn, #deselect-all-btn {
+      background: white;
+      color: #6b46c1;
+      border: 2px solid #6b46c1;
+    }
+
+    #select-all-btn:hover, #deselect-all-btn:hover {
+      background: #6b46c1;
+      color: white;
+    }
+    /* Animations */
+    @keyframes fadeOut {
+      0% { opacity: 1; transform: scale(1); }
+      100% { opacity: 0; transform: scale(0.8); }
+    }
+
+    @keyframes fadeInScale {
+      0% { opacity: 0; transform: scale(0.8); }
+      100% { opacity: 1; transform: scale(1); }
+    }
+
+    .fade-out {
+      animation: fadeOut 0.4s forwards;
+    }
+  </style>
+</head>
+
+<body>
+  <header>
+    <button id="back-btn">&#8592;</button>
+    <h2>System Cleanup</h2>
+  </header>
+
+  <div id="buttons">
+    <button id="scan-btn">Scan Files</button>
+    <button id="select-all-btn">Select All</button>
+    <button id="deselect-all-btn">Deselect All</button>
+    <button id="delete-btn">Delete Selected</button>
+  </div>
+
+  <div id="file-list"></div>
+  <script>
+    const fileList = document.getElementById('file-list');
+    let scannedFiles = [];
+
+    // Create popup div
+    const popup = document.createElement('div');
+    popup.style.position = 'fixed';
+    popup.style.top = '50%';
+    popup.style.left = '50%';
+    popup.style.transform = 'translate(-50%, -50%)';
+    popup.style.background = 'white';
+    popup.style.padding = '20px';
+    popup.style.borderRadius = '12px';
+    popup.style.boxShadow = '0 4px 15px rgba(0,0,0,0.3)';
+    popup.style.textAlign = 'center';
+    popup.style.zIndex = '9999';
+    popup.style.display = 'none';
+    document.body.appendChild(popup);
+
+    // Back button
+    document.getElementById('back-btn').addEventListener('click', () => {
+      window.location.href = 'index.html';
+    });
+
+    // Scan button
+    document.getElementById('scan-btn').addEventListener('click', async () => {
+      scannedFiles = await window.electronAPI.scanCleanup();
+      renderFiles();
+    });
+
+    // Select All
+    document.getElementById('select-all-btn').addEventListener('click', () => {
+      document.querySelectorAll('input[type="checkbox"]').forEach(checkbox => {
+        checkbox.checked = true;
+      });
+    });
+
+    // Deselect All
+    document.getElementById('deselect-all-btn').addEventListener('click', () => {
+      document.querySelectorAll('input[type="checkbox"]').forEach(checkbox => {
+        checkbox.checked = false;
+      });
+    });
+
+    // Converts a size string like "2.3 MB" or "500 KB" to bytes
+    function parseSize(sizeStr) {
+      if (!sizeStr) return 0;
+      const units = { 'B': 1, 'KB': 1024, 'MB': 1024*1024, 'GB': 1024*1024*1024 };
+      const match = sizeStr.match(/([\d\.]+)\s*(B|KB|MB|GB)/i);
+      if (!match) return 0;
+      const value = parseFloat(match[1]);
+      const unit = match[2].toUpperCase();
+      return value * (units[unit] || 1);
+    }
+
+    // Converts bytes to a readable string
+    function formatSize(bytes) {
+      if (bytes >= 1024*1024*1024) return (bytes/(1024*1024*1024)).toFixed(2) + ' GB';
+      if (bytes >= 1024*1024) return (bytes/(1024*1024)).toFixed(2) + ' MB';
+      if (bytes >= 1024) return (bytes/1024).toFixed(2) + ' KB';
+      return bytes + ' B';
+    }
+
+    // Delete Selected
+    document.getElementById('delete-btn').addEventListener('click', async () => {
+      const selectedCheckboxes = Array.from(document.querySelectorAll('input[type="checkbox"]:checked'));
+      const selectedPaths = selectedCheckboxes.map(cb => cb.dataset.path);
+
+      if (selectedPaths.length === 0) {
+        alert('No files selected!');
+        return;
+      }
+
+      // Calculate total size of deleted files
+      let totalCleared = 0;
+      selectedPaths.forEach(path => {
+        const file = scannedFiles.find(f => f.path === path);
+        if (file) {
+          totalCleared += parseSize(file.size);
+        }
+      });
+
+      await window.electronAPI.deleteCleanup(selectedPaths);
+
+      // Animate and remove deleted files
+      selectedCheckboxes.forEach(cb => {
+        const fileDiv = cb.closest('.file-item');
+        fileDiv.classList.add('fade-out');
+
+        setTimeout(() => {
+          fileDiv.remove();
+        }, 400);
+      });
+
+      // Update scannedFiles array
+      scannedFiles = scannedFiles.filter(file => !selectedPaths.includes(file.path));
+
+      // Show Popup with Animation and cleared size
+      showPopup(totalCleared);
+
+      if (scannedFiles.length === 0) {
+        setTimeout(() => {
+          renderFiles();
+        }, 400);
+      }
+    });
+
+    function renderFiles() {
+      fileList.innerHTML = '';
+      if (scannedFiles.length === 0) {
+        fileList.innerHTML = '<p>No junk files found. Yay!</p>';
+        return;
+      }
+
+      scannedFiles.forEach(file => {
+        const div = document.createElement('div');
+        div.className = 'file-item';
+
+        div.innerHTML = `
+          <div class="file-info">
+            <strong>${file.name}</strong>
+            <span class="file-path">${file.path}</span>
+          </div>
+          <div class="file-size">
+            ${file.size}
+            <input type="checkbox" data-path="${file.path}" style="margin-left: 10px;" />
+          </div>
+        `;
+        fileList.appendChild(div);
+      });
+    }
+
+    function showPopup(totalClearedBytes = 0) {
+      const clearedText = totalClearedBytes > 0
+        ? `<p style="font-size:1.1em;margin:10px 0 0 0;">${formatSize(totalClearedBytes)} space cleared!</p>`
+        : '';
+
+      popup.innerHTML = `
+        <img src="C:/Users/Admin/Desktop/OS-AI-Agent/assets/checkmark.gif" alt="Success" style="width: 80px; height: 80px; margin-bottom: 10px;" />
+        <h3>Space Cleared Successfully!</h3>
+        ${clearedText}
+      `;
+      popup.style.display = 'block';
+
+      setTimeout(() => {
+        popup.style.display = 'none';
+      }, 2500); // Hide after 2.5 seconds
+    }
+    
+  </script>
+</body>
+</html>
